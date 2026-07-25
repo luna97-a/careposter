@@ -202,7 +202,7 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 /* 포스터는 폭(--pw)만 바꾸면 글자 크기까지 함께 커지고 작아집니다 */
 .poster-stage{display:flex;justify-content:center}
 .poster{
-  --pw:min(100%,440px);
+  --pw:min(88vw,440px);          /* 글자 크기 계산에 쓰이므로 % 대신 vw 를 씁니다 */
   width:var(--pw);aspect-ratio:210/297;font-size:calc(var(--pw)/42);
   background:#fff;border:1px solid var(--rule);
   padding:1.6em;display:flex;flex-direction:column;gap:.9em;overflow:hidden;
@@ -220,15 +220,16 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 .poster .p-texts p::first-line{font-weight:700}
 .poster .p-foot{border-top:1px solid var(--rule);padding-top:.6em;font-size:.9em;color:var(--ink-soft);display:flex;justify-content:space-between;gap:1em}
 /* 서식 가 : 사진 두 장 나란히 */
-.poster.layout-a .p-photos{grid-template-columns:1fr 1fr;height:9em}
+.poster.layout-a .p-photos{grid-template-columns:1fr 1fr;height:13em}
 /* 서식 나 : 사진 한 장 크게, 글은 두 단 */
-.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:11em}
+.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:15em}
 .poster.layout-b .p-texts{grid-template-columns:1fr 1fr}
 /* 서식 다 : 왼쪽 사진 세로, 오른쪽 글 */
 .poster.layout-c{display:grid;grid-template-columns:1fr 1.35fr;grid-template-rows:auto 1fr auto;gap:.9em 1.1em}
 .poster.layout-c .p-head{grid-column:1/-1}
 .poster.layout-c .p-photos{grid-template-rows:1fr 1fr}
 .poster.layout-c .p-foot{grid-column:1/-1}
+@media (min-width:900px){ .poster{--pw:min(44vw,440px)} }   /* 화면이 두 칸으로 나뉠 때 */
 
 /* ---------- 관찰 일지 서식 (A4 한 장) ---------- */
 .sheet-stage{display:flex;justify-content:center;margin-top:20px}
@@ -387,8 +388,8 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
     </div>
 
     <hr class="hr">
-    <h2 style="font-size:1.3rem">우리 반 포스터</h2>
-    <p class="lead" style="margin-bottom:0">만들기에서 "우리 반에 올리기"를 누른 포스터가 여기에 모입니다. 눌러서 크게 볼 수 있습니다.</p>
+    <h2 style="font-size:1.3rem">올라온 포스터</h2>
+    <p class="lead" style="margin-bottom:0">만들기에서 "전체에 올리기"를 누른 포스터가 여기에 모입니다. 눌러서 크게 볼 수 있습니다.</p>
     <p class="works-msg" id="worksMsg">불러오는 중입니다.</p>
     <div class="works" id="works"></div>
 
@@ -439,7 +440,7 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 
         <div class="btn-row">
           <button class="btn" id="printMake">인쇄하기</button>
-          <button class="btn" id="shareMake">우리 반에 올리기</button>
+          <button class="btn" id="shareMake">전체에 올리기</button>
           <button class="btn ghost" id="clearMake">모두 지우기</button>
         </div>
       </div>
@@ -824,7 +825,7 @@ document.getElementById('printMake').addEventListener('click', function(){
   else 인쇄하기('posterPreview', false);
 });
 /* =========================================================
-   8. 우리 반에 올리기 (파이어베이스)
+   8. 전체에 올리기 (파이어베이스)
    실제로 주고받는 부분은 이 파일 맨 아래 module 스크립트에 있습니다.
    ========================================================= */
 function 올릴자료만들기(끝나면){
@@ -863,10 +864,10 @@ var 올리기단추 = document.getElementById('shareMake');
   올릴자료만들기(function(자료){
     window.포스터올리기(자료).then(function(){
       올리기단추.textContent = '올렸습니다';
-      setTimeout(function(){ 올리기단추.disabled = false; 올리기단추.textContent = '우리 반에 올리기'; }, 2500);
+      setTimeout(function(){ 올리기단추.disabled = false; 올리기단추.textContent = '전체에 올리기'; }, 2500);
     }).catch(function(오류){
       alert('올리지 못했습니다. 인터넷 연결을 확인해 주세요.\n\n' + (오류 && 오류.message ? 오류.message : ''));
-      올리기단추.disabled = false; 올리기단추.textContent = '우리 반에 올리기';
+      올리기단추.disabled = false; 올리기단추.textContent = '전체에 올리기';
     });
   });
 });
