@@ -168,6 +168,9 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
   border:1px solid var(--rule);background:#fff;padding:10px;border-radius:2px
 }
 .field textarea{min-height:110px;resize:vertical;line-height:1.7}
+.field input[type=range]{width:100%;accent-color:var(--green);margin-top:4px}
+.field .range-label{display:flex;justify-content:space-between;font-weight:700;font-size:.9rem;margin:18px 0 2px}
+.field .range-label span{color:var(--green);font-weight:700}
 .field input:focus,.field textarea:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 3px rgba(46,125,50,.18)}
 .layout-pick{display:flex;gap:8px;flex-wrap:wrap}
 .layout-pick button{
@@ -207,6 +210,7 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 .poster-stage{display:flex;justify-content:center}
 .poster{
   --pw:min(88vw,440px);          /* 글자 크기 계산에 쓰이므로 % 대신 vw 를 씁니다 */
+  --pscale:1;                    /* 사진 크기 조절 막대가 이 값을 바꿉니다 */
   width:var(--pw);aspect-ratio:210/297;font-size:calc(var(--pw)/42);
   background:#fff;border:1px solid var(--rule);
   padding:1.6em;display:flex;flex-direction:column;gap:.9em;overflow:hidden;
@@ -226,21 +230,21 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 /* 서식 가 : 사진 두 장 나란히 */
 /* 사진 장수(data-n)에 따라 자리가 달라집니다 */
 /* 서식 가 : 나란히 */
-.poster.layout-a[data-n="1"] .p-photos{grid-template-columns:1fr;height:15em}
-.poster.layout-a[data-n="2"] .p-photos{grid-template-columns:1fr 1fr;height:13em}
-.poster.layout-a[data-n="3"] .p-photos{grid-template-columns:1fr 1fr 1fr;height:11em}
-.poster.layout-a[data-n="4"] .p-photos{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:21em}
+.poster.layout-a[data-n="1"] .p-photos{grid-template-columns:1fr;height:calc(15em * var(--pscale))}
+.poster.layout-a[data-n="2"] .p-photos{grid-template-columns:1fr 1fr;height:calc(13em * var(--pscale))}
+.poster.layout-a[data-n="3"] .p-photos{grid-template-columns:1fr 1fr 1fr;height:calc(11em * var(--pscale))}
+.poster.layout-a[data-n="4"] .p-photos{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:calc(21em * var(--pscale))}
 /* 서식 나 : 사진 한 장 크게, 글은 두 단 */
 /* 서식 나 : 첫 사진을 크게 */
-.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:16em}
+.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:calc(16em * var(--pscale))}
 .poster.layout-b .p-photos figure:first-child{grid-row:1 / -1}
 .poster.layout-b[data-n="1"] .p-photos{grid-template-columns:1fr}
 .poster.layout-b[data-n="2"] .p-photos{grid-template-rows:1fr}
 .poster.layout-b[data-n="3"] .p-photos{grid-template-rows:1fr 1fr}
-.poster.layout-b[data-n="4"] .p-photos{grid-template-rows:1fr 1fr 1fr;height:19em}
+.poster.layout-b[data-n="4"] .p-photos{grid-template-rows:1fr 1fr 1fr;height:calc(19em * var(--pscale))}
 .poster.layout-b .p-texts{grid-template-columns:1fr 1fr}
 /* 서식 다 : 왼쪽 사진 세로, 오른쪽 글 */
-.poster.layout-c{display:grid;grid-template-columns:1fr 1.35fr;grid-template-rows:auto 1fr auto;gap:.9em 1.1em}
+.poster.layout-c{display:grid;grid-template-columns:calc(42% * var(--pscale)) 1fr;grid-template-rows:auto 1fr auto;gap:.9em 1.1em}
 .poster.layout-c .p-head{grid-column:1/-1}
 /* 서식 다 : 왼쪽 칸에 세로로 */
 .poster.layout-c[data-n="1"] .p-photos{grid-template-rows:1fr}
@@ -463,6 +467,9 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
             <button data-layout="b" aria-pressed="false">나<br>사진 크게</button>
             <button data-layout="c" aria-pressed="false">다<br>사진 세로</button>
           </div>
+
+          <div class="range-label"><label for="photoScale">사진 크기</label><span id="scaleLabel">100%</span></div>
+          <input type="range" id="photoScale" min="60" max="150" step="5" value="100">
         </div>
 
         <div class="btn-row">
@@ -828,6 +835,19 @@ function 서식바꾸기(코드){
   if(b) 서식바꾸기(b.dataset.layout);
 });
 서식바꾸기(저장소.get('텃밭_서식') || 'a');
+
+/* 사진 크기 조절 */
+var 크기막대 = document.getElementById('photoScale');
+var 크기표시 = document.getElementById('scaleLabel');
+function 사진크기적용(값, 저장할까){
+  포스터.style.setProperty('--pscale', (값/100).toFixed(2));
+  크기표시.textContent = 값 + '%';
+  if(저장할까 !== false) 저장소.set('텃밭_사진크기', String(값));
+}
+크기막대.addEventListener('input', function(){ 사진크기적용(Number(크기막대.value)); });
+크기막대.value = 저장소.get('텃밭_사진크기') || '100';
+사진크기적용(Number(크기막대.value), false);
+
 사진자리정리();
 
 /* 기사 모양과 포스터 모양 오가기 */
@@ -859,6 +879,7 @@ document.getElementById('clearMake').addEventListener('click', function(){
     저장소.del('텃밭_사진'+n);
     document.getElementById('mImg'+n).value = '';
   });
+  크기막대.value = '100'; 사진크기적용(100);
   사진자리정리();
   그리기();
 });
@@ -895,6 +916,7 @@ function 올릴자료만들기(끝나면){
     내용1: 값('mT1'), 내용2: 값('mT2'), 내용3: 값('mT3'),
     설명1: 값('mCap1'), 설명2: 값('mCap2'), 설명3: 값('mCap3'), 설명4: 값('mCap4'),
     서식: (저장소.get('텃밭_서식') || 'a'),
+    사진크기: Number(크기막대.value),
     사진1: '', 사진2: '', 사진3: '', 사진4: ''
   };
   // 올릴 때는 사진을 한 번 더 줄입니다 (한 건당 1MB 제한이 있습니다)
@@ -964,7 +986,7 @@ function 작품크게보기(자료){
     return '<figure><img src="'+그림+'" alt=""><figcaption></figcaption></figure>';
   }).join('');
   안.innerHTML =
-    '<div class="poster layout-'+(자료.서식 || 'a')+'" data-n="'+사진들.length+'" style="--pw:min(88vw,520px)">'
+    '<div class="poster layout-'+(자료.서식 || 'a')+'" data-n="'+사진들.length+'" style="--pw:min(88vw,520px);--pscale:'+((자료.사진크기 || 100)/100).toFixed(2)+'">'
     + '<div class="p-head"><p class="p-title"></p><p class="p-sub"></p></div>'
     + '<div class="p-photos">' + 사진HTML + '</div>'
     + '<div class="p-texts"><p></p><p></p><p></p></div>'
