@@ -196,6 +196,10 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 .article figure img{width:100%;max-height:420px;object-fit:cover;border:1px solid var(--rule)}
 .article figure figcaption{font-size:.83rem;color:var(--ink-soft);padding-top:6px;border-bottom:1px solid var(--rule);padding-bottom:8px}
 .article .body-text{white-space:pre-wrap;font-size:1rem}
+.article .more-photos{display:grid;gap:16px;margin-top:20px;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.article .more-photos figure{margin:0}
+.article .more-photos img{max-height:190px}
 @media (min-width:700px){ .article .body-text{column-count:2;column-gap:30px;column-rule:1px solid var(--rule)} }
 
 /* ---------- 포스터 ---------- */
@@ -220,14 +224,29 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
 .poster .p-texts p::first-line{font-weight:700}
 .poster .p-foot{border-top:1px solid var(--rule);padding-top:.6em;font-size:.9em;color:var(--ink-soft);display:flex;justify-content:space-between;gap:1em}
 /* 서식 가 : 사진 두 장 나란히 */
-.poster.layout-a .p-photos{grid-template-columns:1fr 1fr;height:13em}
+/* 사진 장수(data-n)에 따라 자리가 달라집니다 */
+/* 서식 가 : 나란히 */
+.poster.layout-a[data-n="1"] .p-photos{grid-template-columns:1fr;height:15em}
+.poster.layout-a[data-n="2"] .p-photos{grid-template-columns:1fr 1fr;height:13em}
+.poster.layout-a[data-n="3"] .p-photos{grid-template-columns:1fr 1fr 1fr;height:11em}
+.poster.layout-a[data-n="4"] .p-photos{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:21em}
 /* 서식 나 : 사진 한 장 크게, 글은 두 단 */
-.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:15em}
+/* 서식 나 : 첫 사진을 크게 */
+.poster.layout-b .p-photos{grid-template-columns:2fr 1fr;height:16em}
+.poster.layout-b .p-photos figure:first-child{grid-row:1 / -1}
+.poster.layout-b[data-n="1"] .p-photos{grid-template-columns:1fr}
+.poster.layout-b[data-n="2"] .p-photos{grid-template-rows:1fr}
+.poster.layout-b[data-n="3"] .p-photos{grid-template-rows:1fr 1fr}
+.poster.layout-b[data-n="4"] .p-photos{grid-template-rows:1fr 1fr 1fr;height:19em}
 .poster.layout-b .p-texts{grid-template-columns:1fr 1fr}
 /* 서식 다 : 왼쪽 사진 세로, 오른쪽 글 */
 .poster.layout-c{display:grid;grid-template-columns:1fr 1.35fr;grid-template-rows:auto 1fr auto;gap:.9em 1.1em}
 .poster.layout-c .p-head{grid-column:1/-1}
-.poster.layout-c .p-photos{grid-template-rows:1fr 1fr}
+/* 서식 다 : 왼쪽 칸에 세로로 */
+.poster.layout-c[data-n="1"] .p-photos{grid-template-rows:1fr}
+.poster.layout-c[data-n="2"] .p-photos{grid-template-rows:1fr 1fr}
+.poster.layout-c[data-n="3"] .p-photos{grid-template-rows:1fr 1fr 1fr}
+.poster.layout-c[data-n="4"] .p-photos{grid-template-rows:1fr 1fr 1fr 1fr}
 .poster.layout-c .p-foot{grid-column:1/-1}
 @media (min-width:900px){ .poster{--pw:min(44vw,440px)} }   /* 화면이 두 칸으로 나뉠 때 */
 
@@ -423,12 +442,20 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
         <div class="field"><label for="mT3">내용 3 · 무엇을 알게 되었나요</label>
           <textarea id="mT3" placeholder="기르면서 알게 된 것과 느낀 점을 적어 보세요."></textarea></div>
 
+        <p class="hint" style="margin:22px 0 10px"><strong>사진은 네 장까지</strong> 넣을 수 있습니다.
+          넣은 장수에 맞춰 자리가 알아서 잡힙니다.</p>
         <div class="field"><label for="mImg1">사진 1</label>
           <input type="file" id="mImg1" accept="image/*">
           <input type="text" id="mCap1" placeholder="사진 1 설명" style="margin-top:8px"></div>
         <div class="field"><label for="mImg2">사진 2</label>
           <input type="file" id="mImg2" accept="image/*">
           <input type="text" id="mCap2" placeholder="사진 2 설명" style="margin-top:8px"></div>
+        <div class="field"><label for="mImg3">사진 3</label>
+          <input type="file" id="mImg3" accept="image/*">
+          <input type="text" id="mCap3" placeholder="사진 3 설명" style="margin-top:8px"></div>
+        <div class="field"><label for="mImg4">사진 4</label>
+          <input type="file" id="mImg4" accept="image/*">
+          <input type="text" id="mCap4" placeholder="사진 4 설명" style="margin-top:8px"></div>
 
         <div class="field" id="layoutField"><label>포스터 서식 고르기</label>
           <div class="layout-pick" id="layoutPick">
@@ -460,7 +487,11 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
           <p class="summary" id="avLead">첫 문장 요약이 여기에 나타납니다.</p>
           <figure id="avFig1" hidden><img id="avImg1" alt="사진 1"><figcaption id="avCap1"></figcaption></figure>
           <div class="body-text" id="avBody">내용이 여기에 나타납니다.</div>
-          <figure id="avFig2" hidden style="margin-top:18px"><img id="avImg2" alt="사진 2"><figcaption id="avCap2"></figcaption></figure>
+          <div class="more-photos">
+            <figure id="avFig2" hidden><img id="avImg2" alt="사진 2"><figcaption id="avCap2"></figcaption></figure>
+            <figure id="avFig3" hidden><img id="avImg3" alt="사진 3"><figcaption id="avCap3"></figcaption></figure>
+            <figure id="avFig4" hidden><img id="avImg4" alt="사진 4"><figcaption id="avCap4"></figcaption></figure>
+          </div>
         </article>
 
         <!-- 전시 포스터 모양 -->
@@ -471,8 +502,10 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
               <p class="p-sub" id="poSub">한 줄 소개</p>
             </div>
             <div class="p-photos">
-              <figure><img id="poImg1" alt="사진 1"><figcaption id="poCap1"></figcaption></figure>
-              <figure><img id="poImg2" alt="사진 2"><figcaption id="poCap2"></figcaption></figure>
+              <figure id="poFig1"><img id="poImg1" alt="사진 1"><figcaption id="poCap1"></figcaption></figure>
+              <figure id="poFig2"><img id="poImg2" alt="사진 2"><figcaption id="poCap2"></figcaption></figure>
+              <figure id="poFig3" hidden><img id="poImg3" alt="사진 3"><figcaption id="poCap3"></figcaption></figure>
+              <figure id="poFig4" hidden><img id="poImg4" alt="사진 4"><figcaption id="poCap4"></figcaption></figure>
             </div>
             <div class="p-texts">
               <p id="poT1">내용 1이 여기에 들어갑니다.</p>
@@ -688,7 +721,9 @@ var 입력칸 = {
   mT2:   {                포스터:'poT2',    기본:'내용 2가 여기에 들어갑니다.'},
   mT3:   {                포스터:'poT3',    기본:'내용 3이 여기에 들어갑니다.'},
   mCap1: {기사:'avCap1',  포스터:'poCap1',  기본:''},
-  mCap2: {기사:'avCap2',  포스터:'poCap2',  기본:''}
+  mCap2: {기사:'avCap2',  포스터:'poCap2',  기본:''},
+  mCap3: {기사:'avCap3',  포스터:'poCap3',  기본:''},
+  mCap4: {기사:'avCap4',  포스터:'poCap4',  기본:''}
 };
 
 function 값(id){ return document.getElementById(id).value.trim(); }
@@ -738,26 +773,51 @@ function 사진줄이기(자료, 최대폭, 화질, 끝나면){
   img.src = 자료;
 }
 
+var 포스터 = document.getElementById('posterPreview');
+var 사진번호 = [1,2,3,4];
+
 function 사진넣기(번호, 자료){
   document.getElementById('avImg'+번호).src = 자료;
-  document.getElementById('avFig'+번호).hidden = false;
   document.getElementById('poImg'+번호).src = 자료;
   저장소.set('텃밭_사진'+번호, 자료);
+  사진자리정리();
 }
-[1,2].forEach(function(n){
+
+/* 넣은 사진만 보이게 하고, 장수를 포스터에 알려 줍니다 */
+function 사진자리정리(){
+  var 있는것 = 사진번호.filter(function(n){ return !!저장소.get('텃밭_사진'+n); });
+  사진번호.forEach(function(n){
+    var 있나 = 있는것.indexOf(n) !== -1;
+    document.getElementById('avFig'+n).hidden = !있나;
+    document.getElementById('poFig'+n).hidden = !있나;
+  });
+  if(있는것.length === 0){
+    // 아직 한 장도 없으면 어떤 모양이 될지 보여 주는 임시 사진 두 장
+    [1,2].forEach(function(n){
+      document.getElementById('poImg'+n).src = 임시사진('사진 '+n, 66);
+      document.getElementById('poFig'+n).hidden = false;
+    });
+    포스터.setAttribute('data-n', '2');
+  } else {
+    포스터.setAttribute('data-n', String(있는것.length));
+  }
+}
+
+사진번호.forEach(function(n){
   사진연결('mImg'+n, function(자료){
     사진줄이기(자료, 1200, 0.72, function(줄인자료){ 사진넣기(n, 줄인자료); });
   });
   var 저장값 = 저장소.get('텃밭_사진'+n);
-  if(저장값) 사진넣기(n, 저장값);
-  else document.getElementById('poImg'+n).src = 임시사진('사진 '+n, 66);
+  if(저장값){
+    document.getElementById('avImg'+n).src = 저장값;
+    document.getElementById('poImg'+n).src = 저장값;
+  }
 });
 
 /* 포스터 서식 고르기 */
-var 포스터 = document.getElementById('posterPreview');
 var 서식버튼 = document.getElementById('layoutPick');
 function 서식바꾸기(코드){
-  포스터.className = 'poster layout-' + 코드;
+  포스터.className = 'poster layout-' + 코드;   // data-n 은 그대로 남습니다
   서식버튼.querySelectorAll('button').forEach(function(b){
     b.setAttribute('aria-pressed', b.dataset.layout === 코드 ? 'true' : 'false');
   });
@@ -768,6 +828,7 @@ function 서식바꾸기(코드){
   if(b) 서식바꾸기(b.dataset.layout);
 });
 서식바꾸기(저장소.get('텃밭_서식') || 'a');
+사진자리정리();
 
 /* 기사 모양과 포스터 모양 오가기 */
 var 현재보기 = '기사';
@@ -794,11 +855,11 @@ document.getElementById('clearMake').addEventListener('click', function(){
     document.getElementById(id).value = '';
     저장소.del('텃밭_'+id);
   });
-  [1,2].forEach(function(n){
+  사진번호.forEach(function(n){
     저장소.del('텃밭_사진'+n);
-    document.getElementById('avFig'+n).hidden = true;
-    document.getElementById('poImg'+n).src = 임시사진('사진 '+n, 66);
+    document.getElementById('mImg'+n).value = '';
   });
+  사진자리정리();
   그리기();
 });
 
@@ -832,18 +893,19 @@ function 올릴자료만들기(끝나면){
   var 자료 = {
     제목: 값('mTitle'), 소개: 값('mSub'), 모둠: 값('mTeam'), 요약: 값('mLead'),
     내용1: 값('mT1'), 내용2: 값('mT2'), 내용3: 값('mT3'),
-    설명1: 값('mCap1'), 설명2: 값('mCap2'),
+    설명1: 값('mCap1'), 설명2: 값('mCap2'), 설명3: 값('mCap3'), 설명4: 값('mCap4'),
     서식: (저장소.get('텃밭_서식') || 'a'),
-    사진1: '', 사진2: ''
+    사진1: '', 사진2: '', 사진3: '', 사진4: ''
   };
   // 올릴 때는 사진을 한 번 더 줄입니다 (한 건당 1MB 제한이 있습니다)
   var 남은일 = 0, 끝났나 = false;
   function 확인(){ if(끝났나 && 남은일 === 0) 끝나면(자료); }
-  [1,2].forEach(function(n){
+  사진번호.forEach(function(n){
     var 원본 = 저장소.get('텃밭_사진'+n);
     if(!원본) return;
     남은일++;
-    사진줄이기(원본, 800, 0.62, function(작은사진){
+    // 네 장이 한 건에 다 들어가야 하므로 조금 더 줄입니다
+    사진줄이기(원본, 700, 0.6, function(작은사진){
       자료['사진'+n] = 작은사진; 남은일--; 확인();
     });
   });
@@ -895,21 +957,22 @@ window.작품목록그리기 = function(목록, 안내글){
 var 보기창 = document.getElementById('viewer');
 function 작품크게보기(자료){
   var 안 = document.getElementById('viewerBody');
-  var 사진1 = 자료.사진1 || 임시사진('사진 1', 66);
-  var 사진2 = 자료.사진2 || 임시사진('사진 2', 66);
+  var 사진들 = [1,2,3,4].filter(function(n){ return 자료['사진'+n]; });
+  if(사진들.length === 0) 사진들 = [1,2];
+  var 사진HTML = 사진들.map(function(n){
+    var 그림 = 자료['사진'+n] || 임시사진('사진 '+n, 66);
+    return '<figure><img src="'+그림+'" alt=""><figcaption></figcaption></figure>';
+  }).join('');
   안.innerHTML =
-    '<div class="poster layout-'+(자료.서식 || 'a')+'" style="--pw:min(88vw,520px)">'
+    '<div class="poster layout-'+(자료.서식 || 'a')+'" data-n="'+사진들.length+'" style="--pw:min(88vw,520px)">'
     + '<div class="p-head"><p class="p-title"></p><p class="p-sub"></p></div>'
-    + '<div class="p-photos">'
-    +   '<figure><img src="'+사진1+'" alt=""><figcaption></figcaption></figure>'
-    +   '<figure><img src="'+사진2+'" alt=""><figcaption></figcaption></figure>'
-    + '</div>'
+    + '<div class="p-photos">' + 사진HTML + '</div>'
     + '<div class="p-texts"><p></p><p></p><p></p></div>'
     + '<div class="p-foot"><span></span><span>천왕중학교 텃밭가꾸기반</span></div></div>';
   안.querySelector('.p-title').textContent = 자료.제목 || '';
   안.querySelector('.p-sub').textContent = 자료.소개 || '';
   var 설명 = 안.querySelectorAll('.p-photos figcaption');
-  설명[0].textContent = 자료.설명1 || ''; 설명[1].textContent = 자료.설명2 || '';
+  사진들.forEach(function(n, i){ 설명[i].textContent = 자료['설명'+n] || ''; });
   var 글 = 안.querySelectorAll('.p-texts p');
   글[0].textContent = 자료.내용1 || ''; 글[1].textContent = 자료.내용2 || ''; 글[2].textContent = 자료.내용3 || '';
   안.querySelector('.p-foot span').textContent = 자료.모둠 || '';
