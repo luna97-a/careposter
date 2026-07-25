@@ -366,7 +366,7 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
       <p class="lead" style="margin-bottom:0">A4 한 장으로 인쇄됩니다. 인쇄 창에서 프린터 대신
         <strong>PDF로 저장</strong>을 고르면 파일로도 받을 수 있습니다.</p>
       <div class="btn-row">
-        <button class="btn" id="printSheet">이 서식 인쇄하기</button>
+        <button class="btn" id="printSheet">인쇄하거나 PDF로 저장</button>
         <a class="btn ghost" id="saveSheet" download="CARE_관찰일지.png">그림 파일로 받기</a>
       </div>
 
@@ -473,10 +473,13 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
         </div>
 
         <div class="btn-row">
-          <button class="btn" id="printMake">인쇄하기</button>
+          <button class="btn" id="printMake">PDF로 저장</button>
           <button class="btn" id="shareMake">전체에 올리기</button>
           <button class="btn ghost" id="clearMake">모두 지우기</button>
         </div>
+        <p class="hint" style="margin:12px 0 0">저장 창이 열리면 프린터 자리에서
+          <strong>‘PDF로 저장’</strong>을 고르고 저장을 누르세요.
+          종이로 뽑고 싶을 때는 같은 자리에서 프린터를 고르면 됩니다.</p>
       </div>
 
       <div>
@@ -889,7 +892,17 @@ document.getElementById('clearMake').addEventListener('click', function(){
    지금 보고 있는 모양 그대로 인쇄합니다.
    ========================================================= */
 var 인쇄자리 = document.getElementById('printStage');
-function 인쇄하기(대상id, 여백주기){
+var 원래제목 = document.title;
+
+/* 파일 이름으로 쓸 수 없는 글자를 걸러 냅니다 */
+function 이름다듬기(글){
+  return (글 || '').replace(/[\\/:*?"<>|\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+}
+
+/* 브라우저는 'PDF로 저장'을 할 때 문서 제목을 파일 이름으로 씁니다.
+   그래서 저장 직전에 제목을 바꿔 두었다가 끝나면 되돌립니다. */
+function 인쇄하기(대상id, 여백주기, 파일이름){
+  if(파일이름) document.title = 파일이름;
   인쇄자리.innerHTML = '';
   인쇄자리.className = 여백주기 ? 'pad' : '';
   var 사본 = document.getElementById(대상id).cloneNode(true);
@@ -901,10 +914,15 @@ function 인쇄하기(대상id, 여백주기){
 window.addEventListener('afterprint', function(){
   document.body.classList.remove('print-mode');
   인쇄자리.innerHTML = '';
+  document.title = 원래제목;
 });
 document.getElementById('printMake').addEventListener('click', function(){
-  if(현재보기 === '기사') 인쇄하기('articlePreview', true);
-  else 인쇄하기('posterPreview', false);
+  var 모둠 = 이름다듬기(값('mTeam'));
+  var 제목 = 이름다듬기(값('mTitle')) || '텃밭이야기';
+  var 종류 = (현재보기 === '기사') ? '기사' : '포스터';
+  var 이름 = (모둠 ? 모둠 + '_' : '') + 제목 + '_' + 종류;
+  if(현재보기 === '기사') 인쇄하기('articlePreview', true, 이름);
+  else 인쇄하기('posterPreview', false, 이름);
 });
 /* =========================================================
    8. 전체에 올리기 (파이어베이스)
@@ -1007,7 +1025,9 @@ document.addEventListener('keydown', function(e){ if(e.key === 'Escape') 보기�
 
 document.getElementById('sheetImg').src = 사진자료.관찰일지서식;
 document.getElementById('saveSheet').href = 사진자료.관찰일지서식;
-document.getElementById('printSheet').addEventListener('click', function(){ 인쇄하기('logSheet', false); });
+document.getElementById('printSheet').addEventListener('click', function(){
+  인쇄하기('logSheet', false, 'CARE_관찰일지');
+});
 </script>
 
 <!-- =========================================================
