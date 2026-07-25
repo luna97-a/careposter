@@ -413,6 +413,9 @@ tbody tr:nth-child(even){background:rgba(165,214,167,.16)}
     <hr class="hr">
     <h2 style="font-size:1.3rem">올라온 포스터</h2>
     <p class="lead" style="margin-bottom:0">만들기에서 "전체에 올리기"를 누른 포스터가 여기에 모입니다. 눌러서 크게 볼 수 있습니다.</p>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn ghost" id="reloadWorks">다시 불러오기</button>
+    </div>
     <p class="works-msg" id="worksMsg">불러오는 중입니다.</p>
     <div class="works" id="works"></div>
 
@@ -950,6 +953,8 @@ function 올릴자료만들기(끝나면){
     });
   });
   끝났나 = true; 확인();
+  // 사진 처리가 멈추는 일이 있어도 15초 뒤에는 넘어갑니다
+  setTimeout(function(){ if(남은일 > 0){ 남은일 = 0; 확인(); } }, 15000);
 }
 
 var 올리기단추 = document.getElementById('shareMake');
@@ -968,7 +973,13 @@ var 올리기단추 = document.getElementById('shareMake');
       올리기단추.textContent = '올렸습니다';
       setTimeout(function(){ 올리기단추.disabled = false; 올리기단추.textContent = '전체에 올리기'; }, 2500);
     }).catch(function(오류){
-      alert('올리지 못했습니다. 인터넷 연결을 확인해 주세요.\n\n' + (오류 && 오류.message ? 오류.message : ''));
+      var 코드 = (오류 && 오류.code) || '';
+      var 안내 = {
+        '시간초과': '서버에 닿지 못했습니다.\n\n· 파이어베이스에 데이터베이스가 만들어져 있는지\n· 이 파일을 웹 주소로 열었는지\n두 가지를 확인해 주세요.',
+        'permission-denied': '데이터베이스 보안 규칙에서 쓰기가 막혀 있습니다.',
+        'unavailable': '인터넷 연결이 끊겼습니다.'
+      }[코드] || '올리지 못했습니다.';
+      alert(안내 + '\n\n(' + (코드 || (오류 && 오류.message) || '알 수 없음') + ')');
       올리기단추.disabled = false; 올리기단추.textContent = '전체에 올리기';
     });
   });
@@ -992,6 +1003,13 @@ window.작품목록그리기 = function(목록, 안내글){
     작품칸.appendChild(b);
   });
 };
+
+document.getElementById('reloadWorks').addEventListener('click', function(){
+  작품안내.textContent = '불러오는 중입니다.';
+  작품칸.innerHTML = '';
+  if(typeof window.목록다시읽기 === 'function') window.목록다시읽기();
+  else 작품안내.textContent = '파이어베이스에 연결되어 있지 않습니다. 인터넷 연결을 확인해 주세요.';
+});
 
 /* 크게 보기 — 저장된 내용을 포스터 모양으로 다시 그립니다 */
 var 보기창 = document.getElementById('viewer');
@@ -1056,10 +1074,25 @@ try {
   const db = getFirestore(app);
   const 모음 = collection(db, "posters");
 
+  /* 파이어스토어는 서버에 닿지 못해도 오류를 내지 않고 계속 기다립니다.
+     그래서 20초가 지나면 스스로 실패로 처리하도록 시간 제한을 겁니다. */
+  function 시간제한(약속, 초){
+    return Promise.race([
+      약속,
+      new Promise(function(_, 실패){
+        setTimeout(function(){
+          var 오류 = new Error("서버에서 응답이 없습니다.");
+          오류.code = "시간초과";
+          실패(오류);
+        }, 초 * 1000);
+      })
+    ]);
+  }
+
   // 포스터 한 건 올리기
   window.포스터올리기 = async function(자료){
     자료.올린시각 = serverTimestamp();
-    await addDoc(모음, 자료);
+    await 시간제한(addDoc(모음, 자료), 20);
     await 목록읽기();
   };
 
@@ -1072,9 +1105,16 @@ try {
       window.작품목록그리기(목록);
     } catch (오류) {
       console.error(오류);
-      window.작품목록그리기([], "포스터를 불러오지 못했습니다. 인터넷 연결이나 데이터베이스 설정을 확인해 주세요.");
+      // 설정 중에 원인을 알 수 있도록 오류 종류를 함께 보여 줍니다
+      const 안내 = {
+        "permission-denied": "데이터베이스 보안 규칙에서 읽기가 막혀 있습니다.",
+        "unavailable": "데이터베이스에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.",
+        "failed-precondition": "데이터베이스가 아직 만들어지지 않았거나 색인이 필요합니다."
+      }[오류.code] || "포스터를 불러오지 못했습니다.";
+      window.작품목록그리기([], 안내 + " (" + (오류.code || "알 수 없음") + ")");
     }
   }
+  window.목록다시읽기 = 목록읽기;
   목록읽기();
 
 } catch (오류) {
